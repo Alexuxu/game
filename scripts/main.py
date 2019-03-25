@@ -24,12 +24,14 @@ class ThreadAnimate(QThread):
 
     def move(self, interval):
         for i in self.w.s.game_object:
+            if i.isJumping:
+                i.jump(interval * i.jump_speed)
 
             if i.isMoving:
                 if i.direction == Qt.Key_Left:
-                    i.move((i.x - interval * i.speed, i.y))
+                    i.move((i.x - interval * i.speed, i.y), 'l')
                 if i.direction == Qt.Key_Right:
-                    i.move((i.x + interval * i.speed, i.y))
+                    i.move((i.x + interval * i.speed, i.y), 'r')
 
 
 class ThreadUpdate(QThread):
@@ -64,17 +66,21 @@ class MainWindow(QWidget):
         self.press = {Qt.Key_Right: False, Qt.Key_Left: False, Qt.Key_Up: False, Qt.Key_Down: False}
 
     def keyPressEvent(self, e):
-        self.press[e.key()] = True
-        self.s.game_object[0].isMoving = True
-        self.s.game_object[0].timerecorder = time.time()
-        self.s.game_object[0].direction = e.key()
+        if e.key() == Qt.Key_Right or e.key() == Qt.Key_Left:
+            if not self.s.game_object[0].isJumping:
+                self.s.game_object[0].isMoving = True
+                self.s.game_object[0].timerecorder = time.time()
+                self.s.game_object[0].direction = e.key()
+
+        if e.key() == Qt.Key_Space:
+            self.s.game_object[0].isJumping = True
 
     def keyReleaseEvent(self, e):
-        self.press[e.key()] = False
-        if self.s.game_object[0].direction == e.key():
-            self.s.game_object[0].isMoving = False
-            self.s.game_object[0].timerecorder = 0
-            self.s.game_object[0].direction = 0
+        if e.key() == Qt.Key_Right or e.key() == Qt.Key_Left:
+            if self.s.game_object[0].direction == e.key():
+                self.s.game_object[0].isMoving = False
+                self.s.game_object[0].timerecorder = 0
+                self.s.game_object[0].direction = 0
 
 
 if __name__ == "__main__":
