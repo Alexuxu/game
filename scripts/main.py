@@ -66,12 +66,15 @@ class MainWindow(QWidget):
     def keyPressEvent(self, e):
         self.press[e.key()] = True
         self.s.game_object[0].isMoving = True
+        self.s.game_object[0].timerecorder = time.time()
         self.s.game_object[0].direction = e.key()
 
     def keyReleaseEvent(self, e):
         self.press[e.key()] = False
-        self.s.game_object[0].isMoving = False
-        self.s.game_object[0].direction = 0
+        if self.s.game_object[0].direction == e.key():
+            self.s.game_object[0].isMoving = False
+            self.s.game_object[0].timerecorder = 0
+            self.s.game_object[0].direction = 0
 
 
 if __name__ == "__main__":
