@@ -3,6 +3,10 @@ from PyQt5.QtGui import *
 import time
 
 
+J_UP = 0
+J_DOWN = 1
+
+
 class GameObject:
     def __init__(self, pos, scale):
         self.isMoving = False
@@ -20,7 +24,7 @@ class Player(GameObject):
         super().__init__(pos, scale)
 
         self.isJumping = False
-        self.jump_status = 'up'
+        self.jump_status = J_UP
         self.y_origin = 200
         self.jump_height = 150
         self.jump_speed = 200
@@ -63,18 +67,18 @@ class Player(GameObject):
             self.img_timerecorder = time.time()
 
     def jump(self, num):
-        if self.y > self.y_origin and self.jump_status == 'down':
+        if self.y > self.y_origin and self.jump_status == J_DOWN:
             self.isJumping = False
             self.y = self.y_origin
-            self.jump_status = 'up'
+            self.jump_status = J_UP
 
         if self.y < self.jump_height:
-            self.jump_status = 'down'
+            self.jump_status = J_DOWN
 
-        if self.jump_status == 'up':
+        if self.jump_status == J_UP:
             self.y -= num
             self.label.move(self.x, self.y)
-        elif self.jump_status == 'down':
+        elif self.jump_status == J_DOWN:
             self.y += num
             self.label.move(self.x, self.y)
 
