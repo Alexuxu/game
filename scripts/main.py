@@ -52,7 +52,6 @@ class MainWindow(QWidget):
         self.setGeometry(400, 200, 1000, 500)
         self.setWindowTitle("我也不知道叫啥的小游戏")
 
-        self.initVariables()
         self.load_scene()
         self.show()
 
@@ -61,9 +60,6 @@ class MainWindow(QWidget):
 
         for object in self.s.game_object:
             object.create(self)
-
-    def initVariables(self):
-        self.press = {Qt.Key_Right: False, Qt.Key_Left: False, Qt.Key_Up: False, Qt.Key_Down: False}
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Right or e.key() == Qt.Key_Left:
