@@ -19,10 +19,11 @@ class GameMain(threading.Thread):
         super().__init__()
         self.window = window
         self.time_recorder = time.time()
-        self.interval_threshold = 0.01
+        self.interval_threshold = 0.016
 
     def run(self):
         while True:
+            time.sleep(0.01)
             interval = time.time() - self.time_recorder
             if interval > self.interval_threshold:
                 self.move(interval)
@@ -31,6 +32,10 @@ class GameMain(threading.Thread):
 
     def move(self, interval):
         p = self.window.scene.player
+        if p.isSquatting:
+            p.squat()
+            return
+
         if p.isMoving:
             if p.direction == Qt.Key_Right:
                 p.walk((p.x + p.speed * interval, p.y))
@@ -47,7 +52,7 @@ class GameMain(threading.Thread):
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setGeometry(400, 200, 1000, 500)
+        self.setGeometry(400, 200, WIDTH, HEIGHT)
         self.init_scene()
         self.show()
 
@@ -65,13 +70,20 @@ class MainWindow(QWidget):
             self.scene.player.isMoving = True
             self.scene.player.direction = e.key()
 
-        if e.key() == Qt.Key_Space:
+        if e.key() == Qt.Key_Up:
             self.scene.player.isJumping = True
+
+        if e.key() == Qt.Key_Down:
+            if not self.scene.player.isJumping:
+                self.scene.player.isSquatting = True
 
     def keyReleaseEvent(self, e):
         if e.key() == Qt.Key_Left or e.key() == Qt.Key_Right:
             self.scene.player.isMoving = False
-            self.scene.player.direction = 0
+
+        if e.key() == Qt.Key_Down:
+            self.scene.player.isSquatting = False
+            self.scene.player.init_img()
 
 
 if __name__ == "__main__":

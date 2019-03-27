@@ -13,6 +13,7 @@ class GameObject:
         self.isMoving = False
         self.direction = 0
         self.isJumping = False
+        self.isSquatting = False
         self.speed = 0
         self.x, self.y = pos
         self.width, self.height = scale
@@ -29,7 +30,7 @@ class Player(GameObject):
         self.y_origin = 200
         self.jump_height = 150
         self.jump_speed = 200
-        self.speed = 100
+        self.speed = 200
         self.img_interval = 0.2
         self.img_timerecorder = 0
 
@@ -37,6 +38,8 @@ class Player(GameObject):
         self.img_player2 = QPixmap('../src/player2.png')
         self.img_player_r1 = QPixmap('../src/player_r1.png')
         self.img_player_r2 = QPixmap('../src/player_r2.png')
+        self.img_player_squat = QPixmap('../src/player_squat.png')
+        self.img_player_squat_r = QPixmap('../src/player_squat_r.png')
         self.img = self.img_player1
         self.img_index = 0
 
@@ -79,5 +82,14 @@ class Player(GameObject):
         elif self.jump_status == G_DOWN:
             self.y += num
 
-    def delete(self):
-        self.label.deleteLater()
+    def squat(self):
+        if self.direction == Qt.Key_Right:
+            self.img = self.img_player_squat
+        elif self.direction == Qt.Key_Left:
+            self.img = self.img_player_squat_r
+
+    def init_img(self):
+        if self.direction == Qt.Key_Right:
+            self.img = self.img_player1
+        elif self.direction == Qt.Key_Left:
+            self.img = self.img_player_r1
