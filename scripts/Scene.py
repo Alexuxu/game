@@ -8,6 +8,9 @@ class Scene:
     def add(self, game_object):
         self.game_object.append(game_object)
 
+    def setPlayer(self, player):
+        self.player = player
+
     def delete(self):
         for i in self.game_object:
             i.delete()
@@ -16,9 +19,9 @@ class Scene:
 def test_scene():
     s = Scene()
 
-    p1_pos = (200, 200)
-    p1_scale = (100, 100)
-    p1 = GameObject.Player(p1_pos, p1_scale)
-    s.add(p1)
+    player_pos = (200, 200)
+    player_scale = (100, 100)
+    player = GameObject.Player(player_pos, player_scale)
+    s.setPlayer(player)
 
     return s

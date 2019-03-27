@@ -3,87 +3,85 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 import sys
 import time
+import threading
 import GameObject as go
 import Scene as sc
 
 
-class ThreadAnimate(QThread):
-    def __init__(self, w):
+KEY_PRESS = 0
+KEY_RELEASE = 1
+WIDTH = 1000
+HEIGHT = 500
+
+
+class GameMain(threading.Thread):
+    def __init__(self, window):
         super().__init__()
-        self.w = w
+        self.window = window
         self.time_recorder = time.time()
-        self.update_v = 0.01
+        self.interval_threshold = 0.01
 
     def run(self):
         while True:
-            interval = time.time()-self.time_recorder
-            if interval > self.update_v:
+            interval = time.time() - self.time_recorder
+            if interval > self.interval_threshold:
                 self.move(interval)
+                self.window.update()
                 self.time_recorder = time.time()
-                # self.collide()
 
     def move(self, interval):
-        for i in self.w.s.game_object:
-            if i.isJumping:
-                i.jump(interval * i.jump_speed)
+        p = self.window.scene.player
+        if p.isMoving:
+            if p.direction == Qt.Key_Right:
+                p.walk((p.x + p.speed * interval, p.y))
+            elif p.direction == Qt.Key_Left:
+                p.walk((p.x - p.speed * interval, p.y))
 
-            if i.isMoving:
-                if i.direction == Qt.Key_Left:
-                    i.move((i.x - interval * i.speed, i.y), 'l')
-                if i.direction == Qt.Key_Right:
-                    i.move((i.x + interval * i.speed, i.y), 'r')
+        if p.isJumping:
+            p.jump(interval * p.jump_speed)
 
-
-class ThreadUpdate(QThread):
-    def __init__(self, w):
-        super().__init__()
-        self.w = w
-
-    def run(self):
-        while True:
-            self.w.update()
-            time.sleep(0.01)
+    def collide(self):
+        pass
 
 
 class MainWindow(QWidget):
-
     def __init__(self):
         super().__init__()
         self.setGeometry(400, 200, 1000, 500)
-        self.setWindowTitle("我也不知道叫啥的小游戏")
-
-        self.load_scene()
+        self.init_scene()
         self.show()
 
-    def load_scene(self):
-        self.s = sc.test_scene()
+    def init_scene(self):
+        self.scene = sc.test_scene()
 
-        for object in self.s.game_object:
-            object.create(self)
+    def paintEvent(self, e):
+        painter = QPainter()
+        painter.begin(self)
+        self.scene.player.draw(painter)
+        painter.end()
 
     def keyPressEvent(self, e):
-        if e.key() == Qt.Key_Right or e.key() == Qt.Key_Left:
-            if not self.s.game_object[0].isJumping:
-                self.s.game_object[0].isMoving = True
-                self.s.game_object[0].timerecorder = time.time()
-                self.s.game_object[0].direction = e.key()
+        if e.key() == Qt.Key_Left or e.key() == Qt.Key_Right:
+            self.scene.player.isMoving = True
+            self.scene.player.direction = e.key()
 
         if e.key() == Qt.Key_Space:
-            self.s.game_object[0].isJumping = True
+            self.scene.player.isJumping = True
 
     def keyReleaseEvent(self, e):
-        if e.key() == Qt.Key_Right or e.key() == Qt.Key_Left:
-            if self.s.game_object[0].direction == e.key():
-                self.s.game_object[0].isMoving = False
-                self.s.game_object[0].timerecorder = 0
-                self.s.game_object[0].direction = 0
+        if e.key() == Qt.Key_Left or e.key() == Qt.Key_Right:
+            self.scene.player.isMoving = False
+            self.scene.player.direction = 0
 
 
 if __name__ == "__main__":
+    # create app
     app = QApplication(sys.argv)
-    w = MainWindow()
-    t_update = ThreadUpdate(w)
-    t_animate = ThreadAnimate(w)
-    t_update.start()
-    t_animate.start()
+
+    # create main window and main game thread
+    main_window = MainWindow()
+    game_thread = GameMain(main_window)
+    game_thread.start()
+
+    # main thread loop
     sys.exit(app.exec_())
