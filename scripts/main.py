@@ -8,8 +8,6 @@ import GameObject as go
 import Scene as sc
 
 
-KEY_PRESS = 0
-KEY_RELEASE = 1
 WIDTH = 1000
 HEIGHT = 500
 
@@ -26,11 +24,14 @@ class GameMain(threading.Thread):
             time.sleep(0.01)
             interval = time.time() - self.time_recorder
             if interval > self.interval_threshold:
-                self.move(interval)
+                self.change_status(interval)
+                self.AI(interval)
+                self.init_attack()
+
                 self.window.update()
                 self.time_recorder = time.time()
 
-    def move(self, interval):
+    def change_status(self, interval):
         p = self.window.scene.player
         if p.isSquatting:
             p.squat()
@@ -38,14 +39,27 @@ class GameMain(threading.Thread):
 
         if p.isMoving:
             if p.direction == Qt.Key_Right:
-                p.walk((p.x + p.speed * interval, p.y))
+                p.move((p.x + p.speed * interval, p.y))
             elif p.direction == Qt.Key_Left:
-                p.walk((p.x - p.speed * interval, p.y))
+                p.move((p.x - p.speed * interval, p.y))
 
         if p.isJumping:
             p.jump(interval * p.jump_speed)
 
+        if p.isAttack:
+            p.attack(self.window.scene)
+
+    def AI(self, interval):
+        s = self.window.scene
+        for object in s.game_dynamic_object:
+            object.logic(s, interval)
+        for object in s.attack_object:
+            object.logic(interval)
+
     def collide(self):
+        pass
+
+    def init_attack(self):
         pass
 
 
@@ -62,7 +76,17 @@ class MainWindow(QWidget):
     def paintEvent(self, e):
         painter = QPainter()
         painter.begin(self)
+
+        # draw the main player
         self.scene.player.draw(painter)
+        # draw the rest of game object
+        for object in self.scene.game_static_object:
+            object.draw(painter)
+        for object in self.scene.game_dynamic_object:
+            object.draw(painter)
+        for object in self.scene.attack_object:
+            object.draw(painter)
+
         painter.end()
 
     def keyPressEvent(self, e):
