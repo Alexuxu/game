@@ -26,6 +26,7 @@ class GameMain(threading.Thread):
             if interval > self.interval_threshold:
                 self.change_status(interval)
                 self.AI(interval)
+                self.collide()
                 self.init_attack()
 
                 self.window.update()
@@ -37,6 +38,10 @@ class GameMain(threading.Thread):
             p.squat()
             return
 
+        if p.isNormalAttacking:
+            p.normal_attack(self.window.scene)
+            return
+
         if p.isMoving:
             if p.direction == Qt.Key_Right:
                 p.move((p.x + p.speed * interval, p.y))
@@ -46,9 +51,6 @@ class GameMain(threading.Thread):
         if p.isJumping:
             p.jump(interval * p.jump_speed)
 
-        if p.isAttack:
-            p.attack(self.window.scene)
-
     def AI(self, interval):
         s = self.window.scene
         for object in s.game_dynamic_object:
@@ -57,10 +59,25 @@ class GameMain(threading.Thread):
             object.logic(interval)
 
     def collide(self):
-        pass
+        s = self.window.scene
+        for attack in s.close_attack:
+            if s.player.NormalAttackTrigger:
+                if attack.camp == go.G_GOOD:
+                    for object in s.game_dynamic_object:
+                        if attack.x < object.x and (object.x - attack.x) < attack.width:
+                            print("命中left")
+                        elif attack.x > object.x and (attack.x - object.x) < object.width:
+                            print("命中right")
 
     def init_attack(self):
-        pass
+        s = self.window.scene
+        if s.player.NormalAttackTrigger:
+            s.player.NormalAttackTrigger = False
+            s.close_attack.remove(s.player.temp_attack)
+        for object in s.game_dynamic_object:
+            if object.NormalAttackTrigger:
+                object.NormalAttackTrigger = False
+                s.close_attack.remove(object.temp_attack)
 
 
 class MainWindow(QWidget):
@@ -101,12 +118,21 @@ class MainWindow(QWidget):
             if not self.scene.player.isJumping:
                 self.scene.player.isSquatting = True
 
+        if e.key() == Qt.Key_X:
+            if not self.scene.player.isSquatting:
+                self.scene.player.isNormalAttacking = True
+                self.scene.player.NormalAttackTrigger = True
+
     def keyReleaseEvent(self, e):
         if e.key() == Qt.Key_Left or e.key() == Qt.Key_Right:
             self.scene.player.isMoving = False
 
         if e.key() == Qt.Key_Down:
             self.scene.player.isSquatting = False
+            self.scene.player.init_img()
+
+        if e.key() == Qt.Key_X:
+            self.scene.player.isNormalAttacking = False
             self.scene.player.init_img()
 
 

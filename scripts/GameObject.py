@@ -2,10 +2,13 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 import time
+import Scene as sc
 
 
 G_UP = 0
 G_DOWN = 1
+G_GOOD = 2
+G_BAD = 3
 
 
 class GameObject:
@@ -23,6 +26,26 @@ class Ground(GameObject):
         self.img = QPixmap('../src/ground.png')
 
 
+class AttackObject(GameObject):
+    def __init__(self, pos, scale):
+        super().__init__(pos, scale)
+        self.speed = 0
+
+    def move(self, pos):
+        if pos[0] > 1000 or pos[0] < 0 or pos[1] > 500 or pos[1] < 0:
+            return
+        self.x, self.y = pos
+
+    def logic(self, interval):
+        pass
+
+
+class CloseAttack(GameObject):
+    def __init__(self, pos, scale, camp):
+        super().__init__(pos, scale)
+        self.camp = camp
+
+
 class DynamicGameObject(GameObject):
     def __init__(self, pos, scale):
         super().__init__(pos, scale)
@@ -30,7 +53,8 @@ class DynamicGameObject(GameObject):
         self.isMoving = False
         self.direction = Qt.Key_Right
         self.isJumping = False
-        self.isAttack = False
+        self.isNormalAttacking = False
+        self.NormalAttackTrigger = False
 
         self.jump_status = G_UP
         self.y_origin = 200
@@ -80,6 +104,16 @@ class DynamicGameObject(GameObject):
         elif self.jump_status == G_DOWN:
             self.y += delta
 
+    def normal_attack(self, scene, camp):
+        if self.direction == Qt.Key_Right:
+            self.img = self.img_attack
+            self.temp_attack = CloseAttack((self.x + 130, self.y + 30), (30, 30), camp)
+        elif self.direction == Qt.Key_Left:
+            self.img = self.img_attack_r
+            self.temp_attack = CloseAttack((self.x - 30, self.y + 30), (30, 30), camp)
+
+        scene.add(self.temp_attack, sc.CLOSE)
+
 
 class Player(DynamicGameObject):
     def __init__(self, pos, scale):
@@ -93,6 +127,8 @@ class Player(DynamicGameObject):
         self.img_r2 = QPixmap('../src/player_r2.png')
         self.img_squat = QPixmap('../src/player_squat.png')
         self.img_squat_r = QPixmap('../src/player_squat_r.png')
+        self.img_attack = QPixmap('../src/player_attack.png')
+        self.img_attack_r = QPixmap('../src/player_attack_r.png')
         self.img = self.img_1
 
     def squat(self):
@@ -104,12 +140,16 @@ class Player(DynamicGameObject):
             self.img = self.img_squat_r
 
     def init_img(self):
-        self.height = 100
+        self.width, self.height = 100, 100
         self.y = 200
         if self.direction == Qt.Key_Right:
             self.img = self.img_1
         elif self.direction == Qt.Key_Left:
             self.img = self.img_r1
+
+    def normal_attack(self, s):
+        self.width = 150
+        super().normal_attack(s, G_GOOD)
 
 
 class Monster1(DynamicGameObject):
@@ -125,23 +165,10 @@ class Monster1(DynamicGameObject):
         self.img = self.img_1
 
     def logic(self, s, interval):
-            if (self.x - s.player.x) < (50 + s.player.width) and self.x > s.player.x:
-                self.direction = Qt.Key_Right
-                self.move((self.x + interval * self.speed, self.y))
-            elif (s.player.x - self.x) < (50 + self.width) and s.player.x > self.x:
-                self.direction = Qt.Key_Left
-                self.move((self.x - interval * self.speed, self.y))
-
-
-class AttackObject(GameObject):
-    def __init__(self, pos, scale):
-        super().__init__(pos, scale)
-        self.speed = 0
-
-    def move(self, pos):
-        if pos[0] > 1000 or pos[0] < 0 or pos[1] > 500 or pos[1] < 0:
-            return
-        self.x, self.y = pos
-
-    def logic(self, interval):
+        # if (self.x - s.player.x) < (50 + s.player.width) and self.x > s.player.x:
+        #     self.direction = Qt.Key_Right
+        #     self.move((self.x + interval * self.speed, self.y))
+        # elif (s.player.x - self.x) < (50 + self.width) and s.player.x > self.x:
+        #     self.direction = Qt.Key_Left
+        #     self.move((self.x - interval * self.speed, self.y))
         pass

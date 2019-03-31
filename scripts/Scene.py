@@ -4,6 +4,7 @@ import GameObject
 STATIC = 0
 DYNAMIC = 1
 ATTACK = 2
+CLOSE = 3
 
 
 class Scene:
@@ -11,6 +12,7 @@ class Scene:
         self.game_static_object = list()
         self.game_dynamic_object = list()
         self.attack_object = list()
+        self.close_attack = list()
 
     def add(self, game_object, type):
         if type == STATIC:
@@ -19,6 +21,8 @@ class Scene:
             self.game_dynamic_object.append(game_object)
         elif type == ATTACK:
             self.attack_object.append(game_object)
+        elif type == CLOSE:
+            self.close_attack.append(game_object)
 
     def setPlayer(self, player):
         self.player = player
