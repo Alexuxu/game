@@ -17,6 +17,7 @@ class GameObject:
         self.width, self.height = scale
 
     def draw(self, painter):
+        # painter.drawRect(self.x, self.y, self.width, self.height)
         painter.drawPixmap(self.x, self.y, self.width, self.height, self.img)
 
 
@@ -107,7 +108,7 @@ class DynamicGameObject(GameObject):
     def normal_attack(self, scene, camp):
         if self.direction == Qt.Key_Right:
             self.img = self.img_attack
-            self.temp_attack = CloseAttack((self.x + 130, self.y + 30), (30, 30), camp)
+            self.temp_attack = CloseAttack((self.x + 100, self.y + 30), (30, 30), camp)
         elif self.direction == Qt.Key_Left:
             self.img = self.img_attack_r
             self.temp_attack = CloseAttack((self.x - 30, self.y + 30), (30, 30), camp)
@@ -140,6 +141,8 @@ class Player(DynamicGameObject):
             self.img = self.img_squat_r
 
     def init_img(self):
+        if self.width == 130 and self.direction == Qt.Key_Left:
+            self.x += 30
         self.width, self.height = 100, 100
         self.y = 200
         if self.direction == Qt.Key_Right:
@@ -148,7 +151,11 @@ class Player(DynamicGameObject):
             self.img = self.img_r1
 
     def normal_attack(self, s):
-        self.width = 150
+        if self.direction == Qt.Key_Right:
+            self.width = 130
+        elif self.direction == Qt.Key_Left:
+            self.width = 130
+            self.x -= 30
         super().normal_attack(s, G_GOOD)
 
 
